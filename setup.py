@@ -14,71 +14,67 @@ NACL_LIB     - location of libnacl.(a|dll) and randombytes.o. Probably
 
 """
 
-import os
-import subprocess
+import sys, os, platform, re
 from distutils.core import setup, Extension
 
-include_dirs = []
-library_dirs = []
+arch = platform.uname()[4]
+hostname = platform.node()
+shost = re.sub(r'[^a-zA-Z0-9]+', '', hostname.split(".")[0])
 
-def check_output(command, **kwargs):
-    p = subprocess.Popen(command, stdout=subprocess.PIPE, **kwargs)
-    output, err = p.communicate()
-    rc = p.poll()
-    if rc:
-        raise subprocess.CalledProcessError(rc, command, output=output)
-    return output
-
-try:
-    arch = check_output("uname -m", shell=True).rstrip().decode("utf8")
-except subprocess.CalledProcessError:
-    arch = ''
-
-try:
-    shost = check_output("hostname | sed 's/\..*//' | tr -cd '[a-z][A-Z][0-9]'", shell=True).rstrip().decode("utf8")
-except subprocess.CalledProcessError:
-    shost = ''
+# http://docs.python.org/library/platform.html#platform.architecture
+# recommends this to test the 64-bitness of the current interpreter:
+#  is_64bits = sys.maxsize > 2**32
 
 if arch == 'x86_64':
     arch='amd64'
 if arch in ['i686','oi586','i486','i386']:
     arch='x86'
 
-if os.environ.get("NACL_DIR"):
-    NACL_DIR = os.environ.get("NACL_DIR").rstrip("/")
-else:
-    NACL_DIR="."
+EMBEDDED_NACL = "nacl-20110221"
+implementations = [
+    ("crypto_auth", "hmacsha256", "ref"),
+    ("crypto_auth", "hmacsha512256", "ref"),
+    ("crypto_box", "curve25519xsalsa20poly1305", "ref"),
+    ("crypto_core", "hsalsa20", "ref"), # or ref2
+    ("crypto_core", "salsa20", "ref"),
+    ("crypto_core", "salsa2012", "ref"),
+    ("crypto_core", "salsa208", "ref"),
+    ("crypto_hash", "sha256", "ref"),
+    ("crypto_hash", "sha512", "ref"),
+    ("crypto_hashblocks", "sha256", "ref"), # or inplace
+    ("crypto_hashblocks", "sha512", "ref"), # or inplace
+    ("crypto_onetimeauth", "poly1305", "ref"), # or 53, amd64, x86
+    ("crypto_scalarmult", "curve25519", "ref"), # or athlon, donna_c64
+    ("crypto_secretbox", "xsalsa20poly1305", "ref"),
+    ("crypto_sign", "edwards25519sha512batch", "ref"),
+    ("crypto_stream", "aes128ctr", "portable"), # or core2
+    ("crypto_stream", "salsa20", "ref"), # or x86_xmm5, amd64_xmm6
+    ("crypto_stream", "salsa2012", "ref"), # or x86_xmm5, amd64_xmm6
+    ("crypto_stream", "salsa208", "ref"), # or x86_xmm5, amd64_xmm6
+    ("crypto_stream", "xsalsa20", "ref"),
+    ("crypto_verify", "16", "ref"),
+    ("crypto_verify", "32", "ref"),
+]
 
-if os.environ.get("NACL_INCLUDE") == None:
-    NACL_INCLUDE = NACL_DIR + '/build/%s/include/%s' % (shost, arch)
-else:
-    NACL_INCLUDE = os.environ.get("NACL_INCLUDE")
+sources = []
+def add_sources_from(d):
+    for fn in os.listdir(d):
+        if fn[-2] == "." and fn[-1] in "csS":
+            sources.append(os.path.join(d, fn))
+for op, algo, impl in implementations:
+    d = os.path.join(EMBEDDED_NACL, op, algo, impl)
+    add_sources_from(d)
+sources.append(os.path.join(EMBEDDED_NACL, "randombytes", "devurandom.c"))
+for s in sources:
+    print s
 
-if os.environ.get("NACL_LIB") == None:
-    NACL_LIB = NACL_DIR + '/build/%s/lib/%s' % (shost, arch)
-else:
-    NACL_LIB = os.environ.get("NACL_LIB")
+#include_dirs = [os.path.join(BUILD_DIR, "include", arch)]
+include_dirs = []
 
-if NACL_INCLUDE is not None:
-    include_dirs.append(NACL_INCLUDE)
-else:
-    include_dirs.append('.')
-
-if NACL_LIB is not None:
-    library_dirs.append(NACL_LIB)
-    extra_objects = ['{0}/randombytes.o'.format(NACL_LIB)]
-else:
-    # This probably won't work.
-    extra_objects = ['./randombytes.o']
-
-
-nacl_module = Extension('_nacl', ['nacl.i'],
+nacl_module = Extension('_nacl', sources,
                         include_dirs=include_dirs,
-                        library_dirs=library_dirs,
                         extra_compiler_args=['-fPIC'],
-                        extra_link_args=['-fPIC'],
-                        libraries=['nacl'],
-                        extra_objects=extra_objects)
+                        extra_link_args=['-fPIC'])
 
 setup (name = 'nacl',
        version = '0.1',
