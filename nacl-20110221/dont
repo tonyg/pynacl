@@ -1,0 +1,347 @@
+#!/bin/sh
+
+# nacl/do
+# D. J. Bernstein
+# Public domain.
+
+version=`cat version`
+project=nacl
+shorthostname=`hostname | sed 's/\..*//' | tr -cd '[a-z][A-Z][0-9]'`
+
+top="`pwd`/build/$shorthostname"
+bin="$top/bin"
+lib="$top/lib"
+include="$top/include"
+work="$top/work"
+
+PATH="/usr/local/bin:$PATH"
+PATH="/usr/sfw/bin:$PATH"
+PATH="$bin:$PATH"
+export PATH
+
+# and work around bug in GNU sort
+LANG=C
+export LANG
+
+rm -rf "$top"
+mkdir -p "$top"
+mkdir -p "$bin"
+mkdir -p "$lib"
+mkdir -p "$include"
+
+#exec >"$top/log"
+#exec 2>&1
+exec 5>"$top/data"
+exec </dev/null
+
+echo "=== `date` === starting"
+
+echo "=== `date` === building okcompilers"
+rm -rf "$work"
+mkdir -p "$work"
+cp -pr okcompilers/* "$work"
+( cd "$work" && sh do )
+cp -p "$work"/bin/* "$bin"
+
+cat >"$bin"/okabi <<EOF
+#!/bin/sh
+echo amd64
+EOF
+
+echo "=== `date` === building cpuid"
+rm -rf "$work"
+mkdir -p "$work"
+cp -pr cpuid/* "$work"
+( cd "$work" && sh do )
+cp -pr "$work"/include/* "$include"
+
+echo "=== `date` === building inttypes"
+rm -rf "$work"
+mkdir -p "$work"
+cp -pr inttypes/* "$work"
+( cd "$work" && sh do )
+cp -pr "$work"/include/* "$include"
+
+echo "=== `date` === building cpucycles"
+rm -rf "$work"
+mkdir -p "$work"
+cp -pr cpucycles/* "$work"
+( cd "$work" && sh do )
+cp -pr "$work"/lib/* "$lib"
+cp -pr "$work"/include/* "$include"
+
+echo "=== `date` === building randombytes"
+rm -rf "$work"
+mkdir -p "$work"
+cp -pr randombytes/* "$work"
+( cd "$work" && sh do )
+cp -pr "$work"/lib/* "$lib"
+cp -pr "$work"/include/* "$include"
+
+okabi \
+| while read abi
+do
+  rm -rf "$work"
+  mkdir -p "$work"
+  echo 'void crypto_'"$project"'_base(void) { ; }' > "$work/${project}_base.c"
+  okc-$abi \
+  | while read compiler
+  do
+    ( cd "$work" && $compiler -c ${project}_base.c ) && break
+  done
+  okar-$abi cr "$lib/$abi/lib${project}.a" "$work/${project}_base.o"
+  ( ranlib "$lib/$abi/lib${project}.a" || exit 0 )
+done
+
+# loop over operations
+cat OPERATIONS \
+| while read o
+do
+  [ -d "$o" ] || continue
+
+  selected=''
+  [ -f "$o/selected" ] && selected=`cat "$o/selected"`
+
+  # for each operation, loop over primitives
+  ls "$o" \
+  | sort \
+  | while read p
+  do
+    [ -d "$o/$p" ] || continue
+    expectedchecksum=''
+    [ -f "$o/$p/checksum" ] && expectedchecksum=`cat "$o/$p/checksum"`
+    op="${o}_${p}"
+
+    startdate=`date +%Y%m%d`
+
+    # for each operation primitive, loop over abis
+    okabi \
+    | while read abi
+    do
+      echo "=== `date` === $abi $o/$p"
+
+      libs=`"oklibs-$abi"`
+      libs="$lib/$abi/cpucycles.o $libs"
+      [ -f "$lib/$abi/lib${project}.a" ] && libs="$lib/$abi/lib${project}.a $libs"
+
+      rm -rf "$work"
+      mkdir -p "$work"
+      mkdir -p "$work/best"
+
+      # for each operation primitive abi, loop over implementations
+      find "$o/$p" -follow -name "api.h" \
+      | sort \
+      | while read doth
+      do
+        implementationdir=`dirname $doth`
+	opi=`echo "$implementationdir" | tr ./- ___`
+
+	echo "=== `date` === $abi $implementationdir"
+        # $o="crypto_hash", $p="sha256", $op="crypto_hash_sha256"
+        # $opi="crypto_hash_sha256_ref"
+
+	rm -rf "$work/compile"
+	mkdir -p "$work/compile"
+  
+	cfiles=`ls "$implementationdir" | grep '\.c$' || :`
+	sfiles=`ls "$implementationdir" | grep '\.[sS]$' || :`
+	cppfiles=`ls "$o" | grep '\.cpp$' || :`
+  
+	cp -p "$o"/*.c "$work/compile/"
+	cp -p "$o"/*.cpp "$work/compile/"
+
+	cp -pr "$implementationdir"/* "$work/compile"
+
+	cp -p "try-anything.c" "$work/compile/try-anything.c"
+	cp -p "measure-anything.c" "$work/compile/measure-anything.c"
+
+	cp -p MACROS "$work/compile/MACROS"
+	cp -p PROTOTYPES.c "$work/compile/PROTOTYPES.c"
+	cp -p PROTOTYPES.cpp "$work/compile/PROTOTYPES.cpp"
+
+	(
+	  cd "$work/compile"
+	  (
+	    echo "#ifndef ${o}_H"
+	    echo "#define ${o}_H"
+	    echo ""
+	    echo "#include \"${op}.h\""
+	    echo ""
+            # MACROS contains a list of all function names and constant
+            # definitions, for all operations (not just this one). The grep
+            # finds the ones that are relevant. The sed adds the primitive
+            # name,e.g. turns "crypto_hash" into "crypto_hash_sha256". Then
+            # this crypto_hash.h will contain::
+            #   #define crypto_hash crypto_hash_sha256
+	    egrep "${o}"'$|'"${o}"'\(|'"${o}"'_' < MACROS \
+	    | sed "s/$o/$op/" | while read mop
+	    do
+              # note: the sed only modifies the first $mop, not both
+	      echo "#define ${mop} ${mop}" | sed "s/$op/$o/"
+	    done
+	    echo "#define ${o}_PRIMITIVE \"${p}\""
+	    echo "#define ${o}_IMPLEMENTATION ${op}_IMPLEMENTATION"
+	    echo "#define ${o}_VERSION ${op}_VERSION"
+	    echo ""
+	    echo "#endif"
+	  ) > "$o.h"
+          # so now callers who want to hash things (and don't care which
+          # actual algorithm they get) can import crypto_hash.h and then use
+          # crypto_hash() and crypto_hash_BYTES. If they want to learn (but
+          # not influence) which algorithm they're using, they can look at
+          # crypto_hash_PRIMITIVE. Also, _IMPLEMENTATION and _VERSION
+          # reference names that are defined in the implementation-specific
+          # header file.
+          #
+          # If this particular $o.h survives, it will provide the default
+          # algorithm for this operation. That will only happen if the
+          # cluster of conditionals at the end of this loop pass: $o/$p/used,
+          # $o/$p/selected, no errors
+
+	  (
+	    echo "#ifndef ${op}_H"
+	    echo "#define ${op}_H"
+	    echo ""
+	    sed 's/[ 	]CRYPTO_/ '"${opi}"'_/g' < api.h
+	    echo '#ifdef __cplusplus'
+	    echo '#include <string>'
+	    egrep "${o}"'$|'"${o}"'\(|'"${o}"'_' < PROTOTYPES.cpp \
+	    | sed "s/$o/$opi/"
+	    echo 'extern "C" {'
+	    echo '#endif'
+	    egrep "${o}"'$|'"${o}"'\(|'"${o}"'_' < PROTOTYPES.c \
+	    | sed "s/$o/$opi/"
+	    echo '#ifdef __cplusplus'
+	    echo '}'
+	    echo '#endif'
+	    echo ""
+	    egrep "${o}"'$|'"${o}"'\(|'"${o}"'_' < MACROS \
+	    | sed "s/$o/$opi/" | while read mopi
+	    do
+	      echo "#define ${mopi} ${mopi}" | sed "s/$opi/$op/"
+	    done
+	    echo "#define ${op}_IMPLEMENTATION \"${implementationdir}\""
+	    echo "#ifndef ${opi}_VERSION"
+	    echo "#define ${opi}_VERSION \"-\""
+	    echo "#endif"
+	    echo "#define ${op}_VERSION ${opi}_VERSION"
+	    echo ""
+	    echo "#endif"
+	  ) > "$op.h"
+          # $op.h will survive if $o/$p/used and there are no errors. It maps
+          # a selected primitive to a specific implementation, e.g.
+          # crypto_hash_sha256 to crypto_hash_sha256_ref
+
+          # both $op.h and $o.h must be present (and customized for a
+          # specific implementation) while that implementation is compiled:
+          # the C code #includes both. The C code defines functions without
+          # -primitive or -implementation suffixes, like "crypto_hash", and
+          # the included .h files cause that to really compile into
+          # crypto_hash_sha256_ref
+
+	  okc-$abi \
+	  | while read compiler
+	  do
+	    echo "=== `date` === $abi $implementationdir $compiler"
+	    compilerword=`echo "$compiler" | tr ' ' '_'`
+	    ok=1
+	    for f in $cfiles $sfiles
+	    do
+	      if [ "$ok" = 1 ]
+	      then
+		$compiler \
+		  -I. -I"$include" -I"$include/$abi" \
+		  -c "$f" >../errors 2>&1 || ok=0
+		( if [ `wc -l < ../errors` -lt 25 ]
+		  then
+		    cat ../errors
+		  else
+		    head ../errors
+		    echo ...
+		    tail ../errors
+		  fi
+		) \
+		| while read err
+		do
+		  echo "$version $shorthostname $abi $startdate $o $p fromcompiler $implementationdir $compilerword $f $err" >&5
+		done
+	      fi
+	    done
+
+	    [ "$ok" = 1 ] || continue
+	    okar-$abi cr "$op.a" *.o || continue
+	    ranlib "$op.a"
+
+	    $compiler \
+	      -I. -I"$include" -I"$include/$abi" \
+	      -o try try.c try-anything.c \
+	      "$op.a" $libs >../errors 2>&1 || ok=0
+	    cat ../errors \
+	    | while read err
+	    do
+	      echo "$version $shorthostname $abi $startdate $o $p fromcompiler $implementationdir $compilerword try.c $err" >&5
+	    done
+	    [ "$ok" = 1 ] || continue
+
+	    if sh -c './try || exit $?' >../outputs 2>../errors
+	    then
+	      checksum=`awk '{print $1}' < ../outputs`
+	      cycles=`awk '{print $2}' < ../outputs`
+	      checksumcycles=`awk '{print $3}' < ../outputs`
+	      cyclespersecond=`awk '{print $4}' < ../outputs`
+	      impl=`awk '{print $5}' < ../outputs`
+	    else
+	      echo "$version $shorthostname $abi $startdate $o $p tryfails $implementationdir $compilerword error $?" >&5
+	      cat ../outputs ../errors \
+	      | while read err
+	      do
+	        echo "$version $shorthostname $abi $startdate $o $p tryfails $implementationdir $compilerword $err" >&5
+	      done
+	      continue
+	    fi
+
+	    checksumok=fails
+	    [ "x$expectedchecksum" = "x$checksum" ] && checksumok=ok
+	    [ "x$expectedchecksum" = "x" ] && checksumok=unknown
+	    echo "$version $shorthostname $abi $startdate $o $p try $checksum $checksumok $cycles $checksumcycles $cyclespersecond $impl $compilerword" >&5
+	    [ "$checksumok" = fails ] && continue
+
+	    [ -s ../bestmedian ] && [ `cat ../bestmedian` -le $cycles ] && continue
+	    echo "$cycles" > ../bestmedian
+
+	    $compiler -D'COMPILER="'"$compiler"'"' \
+	      -DLOOPS=1 \
+	      -I. -I"$include" -I"$include/$abi" \
+	      -o measure measure.c measure-anything.c \
+	      "$op.a" $libs >../errors 2>&1 || ok=0
+	    cat ../errors \
+	    | while read err
+	    do
+	      echo "$version $shorthostname $abi $startdate $o $p fromcompiler $implementationdir $compilerword measure.c $err" >&5
+	    done
+	    [ "$ok" = 1 ] || continue
+
+	    rm -f ../best/*.o ../best/measure || continue
+	    for f in *.o
+	    do
+	      cp -p "$f" "../best/${opi}-$f"
+	    done
+	    cp -p "$op.h" "../$op.h"
+	    cp -p "$o.h" "../$o.h"
+	    cp -p measure ../best/measure
+	  done
+	)
+      done
+
+      [ -f "$o/$p/used" ] \
+      && okar-$abi cr "$lib/$abi/lib${project}.a" "$work/best"/*.o \
+      && ( ranlib "$lib/$abi/lib${project}.a" || exit 0 ) \
+      && cp -p "$work/$op.h" "$include/$abi/$op.h" \
+      && [ -f "$o/$p/selected" ] \
+      && cp -p "$work/$o.h" "$include/$abi/$o.h" \
+      || :
+    done
+  done
+done
+
+echo "=== `date` === finishing"
