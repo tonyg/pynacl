@@ -5,7 +5,7 @@ Public domain.
 */
 
 #include "crypto_hashblocks_sha256.h"
-#include "crypto_hash.h"
+#include "crypto_hash_sha256.h"
 
 #define blocks crypto_hashblocks_sha256
 
@@ -22,7 +22,7 @@ static const char iv[32] = {
   0x5b,0xe0,0xcd,0x19,
 } ;
 
-int crypto_hash(unsigned char *out,const unsigned char *in,unsigned long long inlen)
+int crypto_hash_sha256(unsigned char *out,const unsigned char *in,unsigned long long inlen)
 {
   unsigned char h[32];
   unsigned char padded[128];

@@ -1,11 +1,11 @@
 #include "crypto_core_hsalsa20.h"
 #include "crypto_scalarmult_curve25519.h"
-#include "crypto_box.h"
+#include "crypto_box_curve25519xsalsa20poly1305.h"
 
 static const unsigned char sigma[16] = "expand 32-byte k";
 static const unsigned char n[16] = {0};
 
-int crypto_box_beforenm(
+int crypto_box_curve25519xsalsa20poly1305_beforenm(
   unsigned char *k,
   const unsigned char *pk,
   const unsigned char *sk

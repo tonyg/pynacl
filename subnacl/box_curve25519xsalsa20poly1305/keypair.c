@@ -1,8 +1,8 @@
 #include "crypto_scalarmult_curve25519.h"
-#include "crypto_box.h"
+#include "crypto_box_curve25519xsalsa20poly1305.h"
 #include "randombytes.h"
 
-int crypto_box_keypair(
+int crypto_box_curve25519xsalsa20poly1305_keypair(
   unsigned char *pk,
   unsigned char *sk
 )
