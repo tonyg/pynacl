@@ -5,7 +5,7 @@ Public domain.
 Derived from public domain code by D. J. Bernstein.
 */
 
-#include "crypto_scalarmult.h"
+#include "crypto_scalarmult_curve25519.h"
 
 static void add(unsigned int out[32],const unsigned int a[32],const unsigned int b[32])
 {
@@ -244,7 +244,7 @@ static void recip(unsigned int out[32],const unsigned int z[32])
   /* 2^255 - 21 */ mult(out,t1,z11);
 }
 
-int crypto_scalarmult(unsigned char *q,
+int crypto_scalarmult_curve25519(unsigned char *q,
   const unsigned char *n,
   const unsigned char *p)
 {

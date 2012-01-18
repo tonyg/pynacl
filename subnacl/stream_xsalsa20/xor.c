@@ -6,11 +6,11 @@ Public domain.
 
 #include "crypto_core_hsalsa20.h"
 #include "crypto_stream_salsa20.h"
-#include "crypto_stream.h"
+#include "crypto_stream_xsalsa20.h"
 
 static const unsigned char sigma[16] = "expand 32-byte k";
 
-int crypto_stream_xor(
+int crypto_stream_xsalsa20_xor(
         unsigned char *c,
   const unsigned char *m,unsigned long long mlen,
   const unsigned char *n,

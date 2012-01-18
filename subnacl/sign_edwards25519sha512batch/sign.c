@@ -1,12 +1,12 @@
-#include "api.h"
-#include "crypto_sign.h"
+
+#include "crypto_sign_edwards25519sha512batch.h"
 #include "crypto_hash_sha512.h"
 #include "randombytes.h"
 #include "crypto_verify_32.h"
 
 #include "ge25519.h"
 
-int crypto_sign_keypair(
+int crypto_sign_edwards25519sha512batch_keypair(
     unsigned char *pk,
     unsigned char *sk
     )
@@ -27,7 +27,7 @@ int crypto_sign_keypair(
   return 0;
 }
 
-int crypto_sign(
+int crypto_sign_edwards25519sha512batch(
     unsigned char *sm,unsigned long long *smlen,
     const unsigned char *m,unsigned long long mlen,
     const unsigned char *sk
@@ -69,7 +69,7 @@ int crypto_sign(
   return 0;
 }
 
-int crypto_sign_open(
+int crypto_sign_edwards25519sha512batch_open(
     unsigned char *m,unsigned long long *mlen,
     const unsigned char *sm,unsigned long long smlen,
     const unsigned char *pk

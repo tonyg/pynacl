@@ -5,7 +5,7 @@
  * */
 
 #include "crypto_hashblocks_sha512.h"
-#include "crypto_auth.h"
+#include "crypto_auth_hmacsha512256.h"
 
 #define blocks crypto_hashblocks_sha512
 
@@ -22,7 +22,7 @@ static const unsigned char iv[64] = {
   0x5b,0xe0,0xcd,0x19,0x13,0x7e,0x21,0x79
 } ;
 
-int crypto_auth(unsigned char *out,const unsigned char *in,unsigned long long inlen,const unsigned char *k)
+int crypto_auth_hmacsha512256(unsigned char *out,const unsigned char *in,unsigned long long inlen,const unsigned char *k)
 {
   unsigned char h[64];
   unsigned char padded[256];
