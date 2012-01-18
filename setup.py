@@ -34,29 +34,28 @@ else:
 EMBEDDED_NACL = "nacl-20110221"
 implementations = [
     ("crypto_auth", "hmacsha512256", "ref"),
+    # omit crypto_auth/hmacsha256
     ("crypto_box", "curve25519xsalsa20poly1305", "ref"),
     ("crypto_core", "hsalsa20", "ref"), # or ref2
     ("crypto_core", "salsa20", "ref"),
-    ("crypto_core", "salsa2012", "ref"),
-    ("crypto_core", "salsa208", "ref"),
+    #("crypto_core", "salsa2012", "ref"),
+    #("crypto_core", "salsa208", "ref"),
+    ("crypto_hash", "sha256", "ref"),
     ("crypto_hash", "sha512", "ref"),
+    ("crypto_hashblocks", "sha256", "ref"), # or inplace
     ("crypto_hashblocks", "sha512", "ref"), # or inplace
     ("crypto_onetimeauth", "poly1305", "ref"), # or 53, amd64, x86
     ("crypto_scalarmult", "curve25519", "ref"), # or athlon, donna_c64
     ("crypto_secretbox", "xsalsa20poly1305", "ref"),
     ("crypto_sign", "edwards25519sha512batch", "ref"),
+    ("crypto_stream", "salsa20", "ref"), # or x86_xmm5, amd64_xmm6
     ("crypto_stream", "xsalsa20", "ref"),
+    # omit these unused primitives:
+    #("crypto_stream", "aes128ctr", "portable"), # or core2
+    #("crypto_stream", "salsa2012", "ref"), # or x86_xmm5, amd64_xmm6
+    #("crypto_stream", "salsa208", "ref"), # or x86_xmm5, amd64_xmm6
     ("crypto_verify", "16", "ref"),
     ("crypto_verify", "32", "ref"),
-
-    # these are not "selected", for ops that have multiple algos
-    ("crypto_auth", "hmacsha256", "ref"),
-    ("crypto_hash", "sha256", "ref"),
-    ("crypto_hashblocks", "sha256", "ref"), # or inplace
-    ("crypto_stream", "aes128ctr", "portable"), # or core2
-    ("crypto_stream", "salsa20", "ref"), # or x86_xmm5, amd64_xmm6
-    ("crypto_stream", "salsa2012", "ref"), # or x86_xmm5, amd64_xmm6
-    ("crypto_stream", "salsa208", "ref"), # or x86_xmm5, amd64_xmm6
 ]
 
 sources = []
