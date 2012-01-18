@@ -1,0 +1,52 @@
+#ifndef crypto_core_H
+#define crypto_core_H
+
+#ifdef crypto_core_hsalsa20_H
+#include "crypto_core_hsalsa20.h"
+#define crypto_core crypto_core_hsalsa20
+#define crypto_core_OUTPUTBYTES crypto_core_hsalsa20_OUTPUTBYTES
+#define crypto_core_INPUTBYTES crypto_core_hsalsa20_INPUTBYTES
+#define crypto_core_KEYBYTES crypto_core_hsalsa20_KEYBYTES
+#define crypto_core_CONSTBYTES crypto_core_hsalsa20_CONSTBYTES
+#define crypto_core_PRIMITIVE "hsalsa20"
+#define crypto_core_IMPLEMENTATION crypto_core_hsalsa20_IMPLEMENTATION
+#define crypto_core_VERSION crypto_core_hsalsa20_VERSION
+#endif
+
+#ifdef crypto_core_salsa20_H
+#include "crypto_core_salsa20.h"
+#define crypto_core crypto_core_salsa20
+#define crypto_core_OUTPUTBYTES crypto_core_salsa20_OUTPUTBYTES
+#define crypto_core_INPUTBYTES crypto_core_salsa20_INPUTBYTES
+#define crypto_core_KEYBYTES crypto_core_salsa20_KEYBYTES
+#define crypto_core_CONSTBYTES crypto_core_salsa20_CONSTBYTES
+#define crypto_core_PRIMITIVE "salsa20"
+#define crypto_core_IMPLEMENTATION crypto_core_salsa20_IMPLEMENTATION
+#define crypto_core_VERSION crypto_core_salsa20_VERSION
+#endif
+
+#ifdef crypto_core_salsa2012_H
+#include "crypto_core_salsa2012.h"
+#define crypto_core crypto_core_salsa2012
+#define crypto_core_OUTPUTBYTES crypto_core_salsa2012_OUTPUTBYTES
+#define crypto_core_INPUTBYTES crypto_core_salsa2012_INPUTBYTES
+#define crypto_core_KEYBYTES crypto_core_salsa2012_KEYBYTES
+#define crypto_core_CONSTBYTES crypto_core_salsa2012_CONSTBYTES
+#define crypto_core_PRIMITIVE "salsa2012"
+#define crypto_core_IMPLEMENTATION crypto_core_salsa2012_IMPLEMENTATION
+#define crypto_core_VERSION crypto_core_salsa2012_VERSION
+#endif
+
+#ifdef crypto_core_salsa208_H
+#include "crypto_core_salsa208.h"
+#define crypto_core crypto_core_salsa208
+#define crypto_core_OUTPUTBYTES crypto_core_salsa208_OUTPUTBYTES
+#define crypto_core_INPUTBYTES crypto_core_salsa208_INPUTBYTES
+#define crypto_core_KEYBYTES crypto_core_salsa208_KEYBYTES
+#define crypto_core_CONSTBYTES crypto_core_salsa208_CONSTBYTES
+#define crypto_core_PRIMITIVE "salsa208"
+#define crypto_core_IMPLEMENTATION crypto_core_salsa208_IMPLEMENTATION
+#define crypto_core_VERSION crypto_core_salsa208_VERSION
+#endif
+
+#endif
