@@ -265,11 +265,7 @@ void randombytes(unsigned char *buffer, unsigned long long bytes);
  * Hash stuff
  */
 %constant int crypto_hash_sha256_BYTES;
-%constant char *crypto_hash_sha256_IMPLEMENTATION;
-%constant char *crypto_hash_sha256_VERSION;
 %constant int crypto_hash_sha512_BYTES;
-%constant char *crypto_hash_sha512_IMPLEMENTATION;
-%constant char *crypto_hash_sha512_VERSION;
 
 int crypto_hash_sha256(unsigned char hash[32], const unsigned char *m,
                        unsigned long long mlen);
@@ -287,8 +283,6 @@ int crypto_hash_sha512(unsigned char hash[64], const unsigned char *m,
 %constant int crypto_box_ZEROBYTES;
 %constant int crypto_box_BOXZEROBYTES;
 %constant char *crypto_box_PRIMITIVE;
-%constant char *crypto_box_IMPLEMENTATION;
-%constant char *crypto_box_VERSION;
 
 int crypto_box(unsigned char out[crypto_box_BOXZEROBYTES],
                const unsigned char in[crypto_box_ZEROBYTES],
@@ -343,8 +337,6 @@ crypto_scalarmult_base = crypto_scalarmult_curve25519_base
 %constant int crypto_sign_PUBLICKEYBYTES;
 %constant int crypto_sign_SECRETKEYBYTES;
 %constant char *crypto_sign_PRIMITIVE;
-%constant char *crypto_sign_IMPLEMENTATION;
-%constant char *crypto_sign_VERSION;
 
 int crypto_sign_keypair_fromseed(unsigned char pk[crypto_sign_PUBLICKEYBYTES],
                                  unsigned char sk[crypto_sign_SECRETKEYBYTES],
@@ -368,8 +360,6 @@ int crypto_sign_open(unsigned char *m, unsigned long long *mlen,
 %constant int crypto_secretbox_ZEROBYTES;
 %constant int crypto_secretbox_BOXZEROBYTES;
 %constant char *crypto_secretbox_PRIMITIVE;
-%constant char *crypto_secretbox_IMPLEMENTATION;
-%constant char *crypto_secretbox_VERSION;
 
 int crypto_secretbox(unsigned char out[crypto_secretbox_BOXZEROBYTES],
                      const unsigned char in[crypto_secretbox_ZEROBYTES],
@@ -389,8 +379,6 @@ int crypto_secretbox_open(unsigned char out[crypto_secretbox_ZEROBYTES],
 %constant int crypto_stream_KEYBYTES;
 %constant int crypto_stream_NONCEBYTES;
 %constant char *crypto_stream_PRIMITIVE;
-%constant char *crypto_stream_IMPLEMENTATION;
-%constant char *crypto_stream_VERSION;
 
 int crypto_stream(unsigned char *c, unsigned long long clen,
                   const unsigned char n[crypto_stream_NONCEBYTES],
@@ -407,8 +395,6 @@ int crypto_stream_xor(unsigned char *c, const unsigned char *in,
 %constant int crypto_auth_BYTES;
 %constant int crypto_auth_KEYBYTES;
 %constant char *crypto_auth_PRIMITIVE;
-%constant char *crypto_auth_IMPLEMENTATION;
-%constant char *crypto_auth_VERSION;
 
 int crypto_auth(unsigned char a[crypto_auth_BYTES], const unsigned char *m,
                 unsigned long long mlen,
@@ -424,8 +410,6 @@ int crypto_auth_verify(const unsigned char a[crypto_auth_BYTES],
 %constant int crypto_onetimeauth_BYTES;
 %constant int crypto_onetimeauth_KEYBYTES;
 %constant char *crypto_onetimeauth_PRIMITIVE;
-%constant char *crypto_onetimeauth_IMPLEMENTATION;
-%constant char *crypto_onetimeauth_VERSION;
 
 int crypto_onetimeauth(unsigned char a[crypto_onetimeauth_BYTES],
                        const unsigned char *m, unsigned long long mlen,
