@@ -14,7 +14,8 @@ for d in os.listdir("subnacl"):
 
 sources.append("nacl.i")
 
-nacl_module = Extension('_nacl', sources, include_dirs=["subnacl/include"])
+nacl_module = Extension('_nacl', sources, include_dirs=["subnacl/include"],
+                        extra_compile_args=["-O2", "-funroll-loops", "-fomit-frame-pointer"])
 
 setup (name = 'nacl',
        version = '0.1',
