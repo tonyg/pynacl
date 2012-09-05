@@ -68,6 +68,11 @@ pk2, sk2 = nacl.crypto_box_keypair()
 do("crypto_box", msg, nonce, pk1, sk2)
 c = nacl.crypto_box(msg, nonce, pk1, sk2)
 do("crypto_box_open", c, nonce, pk2, sk1)
+do("crypto_box_beforenm", pk1, sk2)
+K = nacl.crypto_box_beforenm(pk1, sk2)
+do("crypto_box_afternm", msg, nonce, K)
+do("crypto_box_open_afternm", c, nonce, K)
+
 
 do("crypto_sign_keypair_fromseed", b"seed")
 pk,sk = nacl.crypto_sign_keypair()
