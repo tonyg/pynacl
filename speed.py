@@ -2,6 +2,7 @@
 
 import sys, os, time, json
 from distutils import util
+from compare import abbreviate_small_time
 
 libdir = os.path.join("build",
                       "lib.%s-%s" % (util.get_platform(), sys.version[:3]))
@@ -27,7 +28,7 @@ def timeit(f, *args):
 data = {}
 def do(name, *args):
     each, count, elapsed = timeit(getattr(nacl, name), *args)
-    print "%s: %g" % (name, each)
+    print "%s: %s" % (name, abbreviate_small_time(each))
     data[name] = each
 
 do("crypto_hash_sha256", b"")
