@@ -36,8 +36,8 @@ do("crypto_hash_sha512", b"")
 
 scalar0 = b"0"*32
 scalar1 = b"1"*32
-do("crypto_scalarmult", scalar0, scalar1)
-do("crypto_scalarmult_base", scalar0)
+do("crypto_scalarmult_curve25519", scalar0, scalar1)
+do("crypto_scalarmult_curve25519_base", scalar0)
 
 msg = b"m"*1000
 nonce = b"n"*nacl.crypto_stream_NONCEBYTES
