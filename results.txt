@@ -1,0 +1,87 @@
+== O2 unroll-loops nofp 2012MBPr
+
+crypto_hash_sha256: 985.84ns
+crypto_hash_sha512: 1.44us
+crypto_scalarmult_curve25519: 2.17ms
+crypto_scalarmult_curve25519_base: 2.14ms
+crypto_stream: 3.36us
+crypto_stream_xor: 4.02us
+crypto_auth: 6.52us
+crypto_auth_verify: 6.62us
+crypto_onetimeauth: 17.89us
+crypto_onetimeauth_verify: 18.00us
+crypto_secretbox: 22.26us
+crypto_secretbox_open: 22.55us
+crypto_box_keypair: 2.15ms
+crypto_box: 2.18ms
+crypto_box_open: 2.18ms
+crypto_sign_keypair_fromseed: 4.09ms
+crypto_sign: 4.09ms
+crypto_sign_open: 11.08ms
+
+== embed-nacl/dont 2012MBPr
+
+crypto_hash_sha256: 930.27ns
+crypto_hash_sha512: 1.44us
+crypto_scalarmult_curve25519: 84.20us
+crypto_scalarmult_curve25519_base: 82.47us
+crypto_stream: 1.97us
+crypto_stream_xor: 1.98us
+crypto_auth: 5.82us
+crypto_auth_verify: 5.84us
+crypto_onetimeauth: 1.97us
+crypto_onetimeauth_verify: 1.98us
+crypto_secretbox: 3.88us
+crypto_secretbox_open: 4.19us
+crypto_box_keypair: 87.04us
+crypto_box: 87.84us
+crypto_box_open: 87.31us
+crypto_box_beforenm: 84.00us
+crypto_box_afternm: 3.83us
+crypto_box_open_afternm: 4.13us
+crypto_sign_keypair_fromseed: 3.22ms
+crypto_sign: 3.28ms
+crypto_sign_open: 8.82ms
+
+== O2 unroll-loops nofp 2010MBP (measured 05-Sep-2012)
+
+crypto_hash_sha256: 1.26us
+crypto_hash_sha512: 2.01us
+crypto_scalarmult_curve25519: 3.54ms
+crypto_scalarmult_curve25519_base: 3.53ms
+crypto_stream: 11.73us
+crypto_stream_xor: 12.52us
+crypto_auth: 8.68us
+crypto_auth_verify: 8.61us
+crypto_onetimeauth: 27.86us
+crypto_onetimeauth_verify: 27.82us
+crypto_secretbox: 41.38us
+crypto_secretbox_open: 42.46us
+crypto_box_keypair: 3.54ms
+crypto_box: 3.57ms
+crypto_box_open: 3.58ms
+crypto_sign_keypair_fromseed: 6.01ms
+crypto_sign: 6.03ms
+crypto_sign_open: 15.84ms
+
+
+== embed-nacl 2010MBP (optimized) (measured 05-Sep-2012)
+
+crypto_hash_sha256: 1.21us
+crypto_hash_sha512: 2.12us
+crypto_scalarmult_curve25519: 191.70us
+crypto_scalarmult_curve25519_base: 191.44us
+crypto_stream: 3.06us
+crypto_stream_xor: 2.68us
+crypto_auth: 8.98us
+crypto_auth_verify: 8.83us
+crypto_onetimeauth: 2.69us
+crypto_onetimeauth_verify: 2.72us
+crypto_secretbox: 5.98us
+crypto_secretbox_open: 6.57us
+crypto_box_keypair: 197.57us
+crypto_box: 198.67us
+crypto_box_open: 199.40us
+crypto_sign_keypair_fromseed: 5.92ms
+crypto_sign: 5.95ms
+crypto_sign_open: 15.65ms
